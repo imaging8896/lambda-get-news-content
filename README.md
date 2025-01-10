@@ -1,0 +1,1 @@
+# lambda-get-news-content
