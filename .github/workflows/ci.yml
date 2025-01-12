@@ -50,7 +50,8 @@ jobs:
         platform: linux/arm64
         dockerfile: dockerfile/aws-lambda-get-news-content.dockerfile
       run: | 
-        docker buildx build -f ${dockerfile} --platform=${platform} --no-cache -t ${local_docker_tag} .
+        docker buildx build -f ${dockerfile} --platform=${platform} --no-cache -t ${local_docker_tag} --output type=docker .
+        docker images
     - name: Prepare AWS config and credential
       run: |
         mkdir -p ~/.aws
