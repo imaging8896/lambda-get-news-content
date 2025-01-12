@@ -41,12 +41,16 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Set up QEMU for Docker Buildx
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
     - name: build
       env:
         platform: linux/arm64
         dockerfile: dockerfile/aws-lambda-get-news-content.dockerfile
       run: | 
-        docker buildx build  -f ${dockerfile} --platform=${platform} --no-cache -t ${local_docker_tag} .
+        docker buildx build -f ${dockerfile} --platform=${platform} --no-cache -t ${local_docker_tag} .
     - name: Prepare AWS config
       run: |
         touch ~/.aws/config
