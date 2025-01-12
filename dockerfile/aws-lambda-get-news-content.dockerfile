@@ -1,4 +1,4 @@
-FROM python:3.13.1-slim as base
+FROM python:3.13.1-slim AS base
 FROM base as builder
 
 COPY requirements.txt /requirements.txt
