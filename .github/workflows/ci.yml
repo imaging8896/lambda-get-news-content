@@ -74,8 +74,8 @@ jobs:
         aws ecr get-login-password --profile ${aws_push_ecr_profile_name} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
     - name: tag and push
       run: |
-        docker tag ${local_docker_tag} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/get-news-content:${{ needs.get-new-version.outputs.new-version }}
-        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/get-news-content:${{ needs.get-new-version.outputs.new-version }}
+        docker tag ${local_docker_tag} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/data/get-news-content:${{ needs.get-new-version.outputs.new-version }}
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/data/get-news-content:${{ needs.get-new-version.outputs.new-version }}
   push-tag:
     needs: build-and-push-with-ver
     runs-on: ubuntu-latest
