@@ -1,5 +1,5 @@
 FROM python:3.13.1-slim AS base
-FROM base as builder
+FROM base AS builder
 
 COPY requirements.txt /requirements.txt
 RUN pip install --target /.local -r /requirements.txt
