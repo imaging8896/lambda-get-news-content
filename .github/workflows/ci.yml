@@ -53,6 +53,7 @@ jobs:
         docker buildx build -f ${dockerfile} --platform=${platform} --no-cache -t ${local_docker_tag} .
     - name: Prepare AWS config
       run: |
+        mkdir -p ~/.aws
         touch ~/.aws/config
         echo "[default]" >> ~/.aws/config
         echo "region = ${{ secrets.AWS_REGION }}" >> ~/.aws/config
