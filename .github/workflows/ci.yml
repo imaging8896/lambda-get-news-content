@@ -1,0 +1,83 @@
+name: ci
+
+concurrency: ci-version
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  get-new-version:
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.dryRunGetNewVer.outputs.new_tag }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Dry run to get new version tag
+      id: dryRunGetNewVer
+      uses: anothrNick/github-tag-action@1.64.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+        WITH_V: true
+        DRY_RUN: true
+        REPO_OWNER: imaging8896
+        DEFAULT_BUMP: patch
+    - name: Echo new tag
+      run: |
+        echo "The next tag version will be: ${{ steps.dryRunGetNewVer.outputs.new_tag }}"
+    - name: Echo current tag
+      run: |
+        echo "The current tag is: ${{ steps.dryRunGetNewVer.outputs.tag }}"
+    - name: Echo increment part of the new tag
+      run: |
+        echo "The version increment was: ${{ steps.dryRunGetNewVer.outputs.part }}"
+  build-and-push-with-ver:
+    needs: get-new-version
+    runs-on: ubuntu-latest
+    env:
+      local_docker_tag: local/get-news-content:ci
+      aws_push_ecr_profile_name: push-ecr
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: build
+      env:
+        platform: linux/arm64
+        dockerfile: dockerfile/aws-lambda-get-news-content.dockerfile
+      run: | 
+        docker buildx build  -f ${dockerfile} --platform=${platform} --no-cache -t ${local_docker_tag} .
+    - name: Prepare AWS config
+      run: |
+        touch ~/.aws/config
+        echo "[default]" >> ~/.aws/config
+        echo "region = ${{ secrets.AWS_REGION }}" >> ~/.aws/config
+        echo "output = json" >> ~/.aws/config
+
+        echo "[profile ${aws_push_ecr_profile_name}]" >> ~/.aws/config
+        echo "role_arn = ${{ secrets.AWS_PUSH_ECR_ROLE_ARN }}" >> ~/.aws/config
+        echo "source_profile = default" >> ~/.aws/config
+        echo "region = ${{ secrets.AWS_REGION }}" >> ~/.aws/config
+    - name: login ECR
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PUSH_ECR_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PUSH_ECR_SECRET }}
+      run: | 
+        aws ecr get-login-password --profile ${aws_push_ecr_profile_name} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+    - name: tag and push
+      run: |
+        docker tag ${local_docker_tag} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/get-news-content:${{ needs.get-new-version.outputs.new-version }}
+        docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/get-news-content:${{ needs.get-new-version.outputs.new-version }}
+  push-tag:
+    needs: build-and-push-with-ver
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Push new version tag
+      uses: anothrNick/github-tag-action@1.64.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # if you don't want to set write permissions use a PAT token
+        WITH_V: true    
+        REPO_OWNER: imaging8896
+        DEFAULT_BUMP: patch
