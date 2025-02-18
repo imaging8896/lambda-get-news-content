@@ -3,6 +3,7 @@ import random
 import ssl
 import contextlib
 
+from requests.adapters import HTTPAdapter, Retry
 from cloudscraper import CloudScraper
 
 from .parser.general import GeneralNewsHTMLParser
@@ -60,5 +61,10 @@ def get_news_raw_content_by_cloudscraper(url: str, mobile: bool = True, desktop:
         scraper = CloudScraper(browser={"dessktop": False, "browser": "chrome"}, ssl_context=ssl_context)
     else:
         scraper = CloudScraper(ssl_context=ssl_context)
+
+    scraper.mount(
+        url, 
+        HTTPAdapter(max_retries=Retry(total=5, backoff_factor=2.1)),
+    )
 
     return scraper.get(url, verify=ssl_context is None)
