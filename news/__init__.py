@@ -49,7 +49,7 @@ def get_news_raw_content(url: str, mobile: bool = True, desktop: bool = True):
     raise RuntimeError("Code should not reach here. Response is None.")
 
 
-def get_news_raw_content_by_cloudscraper(url: str, mobile: bool = True, desktop: bool = True, ssl_context: ssl.SSLContext = None):
+def get_news_raw_content_by_cloudscraper(url: str, mobile: bool = True, desktop: bool = True, ssl_context: ssl.SSLContext | None = None):
     if ssl_context is not None:
         ssl_context.check_hostname = False
 
