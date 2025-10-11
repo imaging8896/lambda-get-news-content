@@ -1,3 +1,2 @@
-requests
 cloudscraper # Bypass cloudflare
 curl_cffi
