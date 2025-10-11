@@ -3,8 +3,11 @@ import traceback
 from news import get_news_content
 
 
-def handler(event=None, context=None):
+def handler(event: dict | None = None, context=None):
     try:
+        if event is None:
+            raise ValueError("Given None argument for lambda function")
+
         content, url = get_news_content(**event)
         return {
             "status": True,
