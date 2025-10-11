@@ -16,6 +16,10 @@ def get_news_content(url: str, mobile: bool = True, desktop: bool = True):
     parser = GeneralNewsHTMLParser()
 
     parser.feed(raw_content)
+
+    if not parser.has_content_section:
+        raise ValueError(f"No content section(<p>) found in the news article(<article>) of url: {url}")
+
     return parser.content, news_url
 
 
