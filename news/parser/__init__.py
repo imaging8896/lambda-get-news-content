@@ -7,6 +7,7 @@ class NewsHTMLParser(HTMLParser):
         super().__init__(convert_charrefs=convert_charrefs)
 
         self._content = ""
+        self.has_content_section = False
 
     @property
     def content(self) -> str:

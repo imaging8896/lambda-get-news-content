@@ -1,7 +1,6 @@
 import logging
 import random
 
-
 from cloudscraper import CloudScraper
 from curl_cffi import requests as curl_requests
 
@@ -17,15 +16,19 @@ def get_news_content(url: str, mobile: bool = True, desktop: bool = True):
     parser = GeneralNewsHTMLParser()
 
     parser.feed(raw_content)
+
+    if not parser.has_content_section:
+        raise ValueError(f"No content section(<p>) found in the news article(<article>) of url: {url}")
+
     return parser.content, news_url
 
 
-def get_news_raw_content(url: str, mobile: bool = True, desktop: bool = True):
+def get_news_raw_content(url: str, mobile: bool = True, desktop: bool = True, **request_kw):
     response = None
     exception = None
     
     try:
-        response = get_news_raw_content_by_cloudscraper(url, mobile=mobile, desktop=desktop)
+        response = get_news_raw_content_by_cloudscraper(url, mobile=mobile, desktop=desktop, **request_kw)
     except (curl_requests.exceptions.SSLError, curl_requests.exceptions.ConnectionError) as e:
         logger.warning(f"Request error with random client header", exc_info=True)
         exception = e
@@ -33,14 +36,14 @@ def get_news_raw_content(url: str, mobile: bool = True, desktop: bool = True):
     if mobile and desktop:
         try:
             if response is None or response.status_code == 403:
-                response = get_news_raw_content_by_cloudscraper(url, mobile=False)
+                response = get_news_raw_content_by_cloudscraper(url, mobile=False, **request_kw)
         except (curl_requests.exceptions.SSLError, curl_requests.exceptions.ConnectionError) as e:
             logger.warning(f"Request error with desktop client header", exc_info=True)
             exception = e
 
         try:
             if response is None or response.status_code == 403:
-                response = get_news_raw_content_by_cloudscraper(url, desktop=False)
+                response = get_news_raw_content_by_cloudscraper(url, desktop=False, **request_kw)
         except (curl_requests.exceptions.SSLError, curl_requests.exceptions.ConnectionError) as e:
             logger.warning(f"Request error with mobile client header", exc_info=True)
             exception = e

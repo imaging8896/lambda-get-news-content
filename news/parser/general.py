@@ -15,6 +15,7 @@ class GeneralNewsHTMLParser(NewsHTMLParser):
         elif self._entering_article:
             if tag == "p":
                 self._entering_p = True
+                self.has_content_section = True
 
     def handle_endtag(self, tag):
         if tag == "article":
